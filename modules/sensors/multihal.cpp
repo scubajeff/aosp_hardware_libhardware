@@ -36,6 +36,8 @@
 #include <dlfcn.h>
 #include <SensorEventQueue.h>
 
+#include <limits.h>
+#include <stdlib.h>
 
 static const char* CONFIG_FILENAME = "/system/etc/sensors/hals.conf";
 static const int MAX_CONF_LINE_LENGTH = 1024;
@@ -525,14 +527,14 @@ static void lazy_init_modules() {
         pthread_mutex_unlock(&init_modules_mutex);
         return;
     }
-    std::vector<std::string> *so_paths = new std::vector<std::string>();
-    get_so_paths(so_paths);
+    std::vector<std::string> so_paths;
+    get_so_paths(&so_paths);
 
     // dlopen the module files and cache their module symbols in sub_hw_modules
     sub_hw_modules = new std::vector<hw_module_t *>();
     dlerror(); // clear any old errors
     const char* sym = HAL_MODULE_INFO_SYM_AS_STR;
-    for (std::vector<std::string>::iterator it = so_paths->begin(); it != so_paths->end(); it++) {
+    for (std::vector<std::string>::iterator it = so_paths.begin(); it != so_paths.end(); it++) {
         const char* path = it->c_str();
         void* lib_handle = dlopen(path, RTLD_LAZY);
         if (lib_handle == NULL) {
